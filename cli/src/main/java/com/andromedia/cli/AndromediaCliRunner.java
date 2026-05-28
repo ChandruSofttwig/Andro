@@ -29,6 +29,10 @@ public class AndromediaCliRunner implements CommandLineRunner {
 
   @Override
   public void run(String... args) {
+    if (shouldPrintBanner(args)) {
+      AsciiBannerPrinter.print();
+    }
+
     CommandLine commandLine = new CommandLine(rootCommand, factory);
     commandLine.setExecutionStrategy(
         parseResult -> {
@@ -37,5 +41,25 @@ public class AndromediaCliRunner implements CommandLineRunner {
         });
     int exitCode = commandLine.execute(args);
     SpringApplication.exit(applicationContext, () -> exitCode);
+  }
+
+  static boolean shouldPrintBanner(String[] args) {
+    if (args == null || args.length == 0) {
+      return true;
+    }
+    if (args.length > 2) {
+      return false;
+    }
+
+    for (String arg : args) {
+      if (!isHelpOption(arg)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean isHelpOption(String arg) {
+    return "-h".equals(arg) || "--help".equals(arg);
   }
 }

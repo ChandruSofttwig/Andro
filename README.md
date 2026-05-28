@@ -2,6 +2,16 @@
 
 Multi-module Spring Boot scaffold (Java 21).
 
+```text
+    _              __
+   / \   ____  ____/ /________
+  / _ \ / __ \/ __  / ___/ __ \
+ / ___ / / / / /_/ / /  / /_/ /
+/_/  |_/_/ /_/\__,_/_/   \____/
+
+    local-first ai developer cli
+```
+
 ## Build
 
 ```bash
@@ -94,6 +104,7 @@ Note: `./cli/bin/install-andro` builds with `-am` and `-DskipTests` for reliable
 - Normal command output is kept clean on stdout.
 - Detailed diagnostics are written to `~/.andromedia/logs/andro.log`.
 - Use `--debug` on the root command to print query/index diagnostics to stderr:
+- A custom ASCII banner is shown only for root entry (`andro`) and root help (`andro --help`).
 
 ```bash
 andro --debug search "jwt"
