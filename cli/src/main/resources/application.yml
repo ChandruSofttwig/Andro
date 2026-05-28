@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: andromedia-cli
+  main:
+    web-application-type: none
+    banner-mode: off
+    log-startup-info: false
+
+logging:
+  file:
+    name: ${user.home}/.andromedia/logs/andro.log
+  level:
+    root: WARN
