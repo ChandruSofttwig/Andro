@@ -6,6 +6,9 @@ import java.time.Instant;
 public record IndexingStats(
     long filesVisited,
     long filesIndexed,
+    long chunksIndexed,
+    long chunksEmbedded,
+    long oversizedChunks,
     long bytesIndexed,
     Instant startedAt,
     Instant finishedAt) {

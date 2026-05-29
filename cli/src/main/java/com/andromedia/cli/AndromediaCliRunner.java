@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import picocli.CommandLine;
 import picocli.CommandLine.IFactory;
 import picocli.CommandLine.RunLast;
-
 @Component
 public class AndromediaCliRunner implements CommandLineRunner {
 

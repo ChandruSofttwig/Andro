@@ -4,6 +4,7 @@ import com.andromedia.common.IndexConstants;
 import com.andromedia.indexing.IndexingRequest;
 import com.andromedia.indexing.IndexingService;
 import com.andromedia.indexing.IndexingStats;
+import com.andromedia.llm.EmbeddingProperties;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
@@ -19,6 +20,7 @@ import picocli.CommandLine.Parameters;
 public class IndexCommand implements Runnable {
 
   private final IndexingService indexingService;
+  private final EmbeddingProperties embeddingProperties;
 
   @Parameters(index = "0", description = "Root directory to index")
   private Path rootDirectory;
@@ -37,8 +39,14 @@ public class IndexCommand implements Runnable {
       description = "Do not write index, just log what would be indexed")
   private boolean dryRun;
 
-  public IndexCommand(IndexingService indexingService) {
+  @Option(
+      names = "--embed",
+      description = "Generate OpenRouter embeddings (openai/text-embedding-ada-002) for each chunk")
+  private boolean embedChunks;
+
+  public IndexCommand(IndexingService indexingService, EmbeddingProperties embeddingProperties) {
     this.indexingService = indexingService;
+    this.embeddingProperties = embeddingProperties;
   }
 
   @Override
@@ -46,15 +54,20 @@ public class IndexCommand implements Runnable {
     Path validatedRoot = validateRootDirectory(rootDirectory);
     Set<String> extensions = normalizeExtensions(includedExtensions);
 
+    validateEmbedConfiguration(embedChunks);
+
     IndexingRequest request =
-        new IndexingRequest(validatedRoot, extensions, recreateIndex, dryRun);
+        new IndexingRequest(validatedRoot, extensions, recreateIndex, dryRun, embedChunks);
 
     IndexingStats stats = indexingService.indexPath(request);
 
     System.out.printf(
-        "Indexed %d / %d files (%d bytes) from %s in %d ms%n",
+        "Indexed %d / %d files (%d chunks, %d embedded, %d oversized, %d bytes) from %s in %d ms%n",
         stats.filesIndexed(),
         stats.filesVisited(),
+        stats.chunksIndexed(),
+        stats.chunksEmbedded(),
+        stats.oversizedChunks(),
         stats.bytesIndexed(),
         validatedRoot,
         stats.duration().toMillis());
@@ -72,6 +85,13 @@ public class IndexCommand implements Runnable {
       throw new IllegalArgumentException("Path is not a directory: " + absolute);
     }
     return absolute;
+  }
+
+  private void validateEmbedConfiguration(boolean embedChunks) {
+    if (embedChunks && !embeddingProperties.hasApiKey()) {
+      throw new IllegalArgumentException(
+          "Embedding requires OPENROUTER_API_KEY (or andromedia.embedding.api-key).");
+    }
   }
 
   private static Set<String> normalizeExtensions(Set<String> extensions) {

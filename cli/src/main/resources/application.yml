@@ -6,6 +6,19 @@ spring:
     banner-mode: off
     log-startup-info: false
 
+andromedia:
+  context:
+    neighbor-line-window: 15
+    max-header-lines: 40
+  embedding:
+    provider: openrouter
+    base-url: https://openrouter.ai/api/v1
+    model: openai/text-embedding-ada-002
+    dimensions: 1536
+    api-key: ${OPENROUTER_API_KEY:}
+    http-referer: ${OPENROUTER_HTTP_REFERER:}
+    app-title: ${OPENROUTER_APP_TITLE:Andromedia}
+
 logging:
   file:
     name: ${user.home}/.andromedia/logs/andro.log

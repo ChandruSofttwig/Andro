@@ -7,4 +7,5 @@ public record IndexingRequest(
     Path rootDirectory,
     Set<String> includedExtensions,
     boolean recreateIndex,
-    boolean dryRun) {}
+    boolean dryRun,
+    boolean embedChunks) {}

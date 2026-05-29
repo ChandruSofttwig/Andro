@@ -20,6 +20,14 @@
       <artifactId>andromedia-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.andromedia</groupId>
+      <artifactId>andromedia-ingestion</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.andromedia</groupId>
+      <artifactId>andromedia-llm</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-core</artifactId>
     </dependency>

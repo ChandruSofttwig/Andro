@@ -76,9 +76,18 @@ If `which andro` is still empty, reinstall the launcher from the repository root
 # Index a project (default extensions: java, kt, kts, groovy)
 andro index /path/to/project
 
-# Search indexed content (BM25 on file content)
+# Search indexed content (BM25 on method/class/file chunks)
 andro search "jwt"
 andro search "validateToken" -n 5
+
+# Semantic search (after `andro index --embed`)
+andro search --semantic "token validation logic"
+
+# Hybrid BM25 + semantic fusion (recommended when embeddings exist)
+andro search --hybrid "token validation logic"
+
+# Debug: channel scores + optional expanded LLM context blocks
+andro --debug search --hybrid --expand-context "validateToken"
 
 # Debug mode (prints diagnostics to stderr)
 andro --debug search "jwt"
@@ -138,14 +147,48 @@ If no marker is found, the provided start directory is used as the workspace roo
 folder inside the same workspace uses the same project index when `.andromedia/` exists at the
 workspace root.
 
+## Retrieval architecture (Phase 1)
+
+Andromedia indexes **semantic-boundary chunks** (not whole files by default):
+
+```text
+Source files → Chunking (method-first) → CodeChunks → Lucene BM25
+```
+
+- **Java**: one chunk per method when extraction succeeds; class body fallback; file fallback last.
+- **Other default extensions** (`kt`, `kts`, `groovy`): file-level chunk in Phase 1.
+- Oversized methods stay a **single chunk** in v1 (warned during indexing).
+- Search hits include location (`File.java:42-58`) and symbol (`validateToken`) when available.
+
+Phase 2: same chunks can receive OpenRouter embeddings (`openai/text-embedding-ada-002`, 1536-dim) for semantic search.
+
+```bash
+export OPENROUTER_API_KEY="your-key"
+
+# Index with embeddings (OpenRouter API calls per chunk)
+andro index --embed --recreate /path/to/project
+
+# Semantic vector search (requires embedded index)
+andro search --semantic "jwt bearer validation"
+```
+
+Phase 3: hybrid retrieval fuses BM25 + semantic with reciprocal rank fusion (RRF), deduplicated by `chunkId`. Retrieval stays at method/class chunk granularity; `ContextAssembler` expands hits into broader LLM context (imports, headers, neighbor lines) when using `--debug --expand-context`.
+
+```bash
+andro search --hybrid "jwt bearer validation"
+andro --debug search --hybrid --expand-context "validateToken"
+```
+
+Without `--embed`, `--hybrid` falls back to BM25-only (semantic channel skipped).
+
 ## Modules
 
 | Module | Role |
 |--------|------|
-| `common` | Shared types |
-| `ingestion` | File watching / ingestion |
-| `indexing` | Apache Lucene indexing |
-| `search` | Lucene search |
+| `common` | Shared types (`CodeChunk`, index field constants) |
+| `ingestion` | Semantic-boundary chunking |
+| `indexing` | Apache Lucene chunk indexing |
+| `search` | Lucene BM25 chunk search |
 | `llm` | LLM integrations |
 | `core` | WebFlux server entry point |
 | `cli` | Command-line entry point |

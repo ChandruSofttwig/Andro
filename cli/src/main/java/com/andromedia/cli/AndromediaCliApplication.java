@@ -4,7 +4,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication(
-    scanBasePackages = {"com.andromedia.cli", "com.andromedia.indexing", "com.andromedia.search"})
+    scanBasePackages = {
+      "com.andromedia.cli",
+      "com.andromedia.indexing",
+      "com.andromedia.search",
+      "com.andromedia.llm"
+    })
 public class AndromediaCliApplication {
 
   public static void main(String[] args) {
